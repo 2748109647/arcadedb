@@ -201,8 +201,11 @@ public class SQLFunctionTimeBucket extends SQLFunctionConfigurableAbstract {
     }
   }
 
-  /** A signed duration: {@code '-8h'}, {@code '+30m'}, or a number of milliseconds. */
-  private static long offsetToMs(final Object offset) {
+  /**
+   * A signed duration: {@code '-8h'}, {@code '+30m'}, or a number of milliseconds, not reduced modulo any interval (the OFFSET of a
+   * calendar histogram facet shifts its boundaries by it).
+   */
+  public static long offsetToMs(final Object offset) {
     if (offset instanceof Number number)
       return number.longValue();
     final String text = offset.toString().trim();
