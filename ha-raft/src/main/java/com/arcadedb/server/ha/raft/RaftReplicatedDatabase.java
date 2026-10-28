@@ -83,6 +83,7 @@ import com.arcadedb.network.binary.ReplicationQueueFullException;
 import com.arcadedb.network.binary.ServerIsNotTheLeaderException;
 import com.arcadedb.query.QueryEngine;
 import com.arcadedb.query.RunningQuery;
+import com.arcadedb.query.facet.FacetResults;
 import com.arcadedb.query.opencypher.optimizer.statistics.GraphStatisticsCache;
 import com.arcadedb.query.opencypher.query.CypherPlanCache;
 import com.arcadedb.query.opencypher.query.CypherStatementCache;
@@ -5554,7 +5555,7 @@ public class RaftReplicatedDatabase implements DatabaseInternal, HAReplicatedDat
 
   /**
    * Parses the JSON response from the leader's /api/v1/command endpoint into a {@link ResultSet}.
-   * Expected format: {@code {"result": [{...}, {...}, ...]}}
+   * Expected format: {@code {"result": [{...}, {...}, ...]}}, plus {@code "facets": {...}} for a {@code SELECT ... FACETS} query.
    */
   static ResultSet parseResultSetFromJson(final String json) {
     final JSONObject responseJson = new JSONObject(json);
@@ -5572,6 +5573,10 @@ public class RaftReplicatedDatabase implements DatabaseInternal, HAReplicatedDat
         }
       }
     }
+
+    // The facets of a SELECT ... FACETS query the leader answered, in the shape every transport shares
+    if (responseJson.has("facets"))
+      resultSet.setFacets(FacetResults.fromJSON(responseJson.getJSONObject("facets")));
 
     return resultSet;
   }
